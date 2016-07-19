@@ -25,10 +25,13 @@ package htsjdk.samtools.filter;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMUtils;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalUtil;
 import htsjdk.samtools.util.OverlapDetector;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,28 +39,22 @@ import java.util.List;
  * Filter SAMRecords so that only those that overlap the given list of intervals.
  * It is required that the SAMRecords are passed in coordinate order, and have non-null SAMFileHeaders.
  *
- * $Id$
  *
- * @author alecw@broadinstitute.org
+ * @author kbergin@broadinstitute.org
  */
-public class IntervalFilter implements SamRecordFilter {
-    private final Iterator<Interval> intervals;
-    /**
-     * Null only if there are no more intervals
-     */
+public class IntervalKeepPairFilter implements SamRecordFilter {
     private final SAMFileHeader samHeader;
-    private Interval currentInterval;
-    private int currentSequenceIndex;
+    private OverlapDetector<Interval> intervalOverlapDetector;
 
     /**
      * Prepare to filter out SAMRecords that do not overlap the given list of intervals
      * @param intervals -- must be locus-ordered & non-overlapping
      */
-    public IntervalFilter(final List<Interval> intervals, final SAMFileHeader samHeader) {
+    public IntervalKeepPairFilter(final List<Interval> intervals, final SAMFileHeader samHeader) {
         this.samHeader = samHeader;
         IntervalUtil.assertOrderedNonOverlapping(intervals.iterator(), samHeader.getSequenceDictionary());
-        this.intervals = intervals.iterator();
-        advanceInterval();
+        this.intervalOverlapDetector = new OverlapDetector<>(0,0);
+        this.intervalOverlapDetector.addAll(intervals, intervals);
     }
 
     /**
@@ -67,22 +64,25 @@ public class IntervalFilter implements SamRecordFilter {
      * @return true if the SAMRecord matches the filter, otherwise false
      */
     public boolean filterOut(final SAMRecord record) {
-        while (currentInterval != null &&
-                (currentSequenceIndex < record.getReferenceIndex() ||
-                 (currentSequenceIndex == record.getReferenceIndex() && currentInterval.getEnd() < record.getAlignmentStart()))) {
-            advanceInterval();
-        }
-        // Return true if record should be filtered out
-        return !(currentInterval != null && currentSequenceIndex == record.getReferenceIndex() &&
-                 currentInterval.getStart() <= record.getAlignmentEnd());
-    }
+        /*
+        Take record, find its mate
+        Check if either record overlaps the current interval using overlap detector
+        If yes, return false, don't filter it out
+         */
 
-    private void advanceInterval() {
-        if (intervals.hasNext()) {
-            currentInterval = intervals.next();
-            currentSequenceIndex = samHeader.getSequenceIndex(currentInterval.getContig());
-        } else {
-            currentInterval = null;
+        //get read 1 interval and check for overlaps in any intervals in list
+        Interval readInterval = new Interval(record.getReferenceName(), record.getStart(), record.getEnd());
+        final Collection<Interval> overlapsRead1 = intervalOverlapDetector.getOverlaps(readInterval);
+
+        //get read 2 interval and check for overlaps
+        readInterval = new Interval(record.getMateReferenceName(), record.getMateAlignmentStart(), SAMUtils.getMateAlignmentEnd(record));
+        final Collection<Interval> overlapsRead2 = intervalOverlapDetector.getOverlaps(readInterval);
+
+        if (overlapsRead1.size() > 0 || overlapsRead2.size() > 0) {
+            return false;
+        }
+        else {
+            return true;
         }
     }
 
@@ -95,10 +95,6 @@ public class IntervalFilter implements SamRecordFilter {
      * @return true if the SAMRecords matches the filter, otherwise false
      */
     public boolean filterOut(final SAMRecord first, final SAMRecord second) {
-        //This needs to be changed to say that this can never be implemented because if the bam is coordinate sorted,
-        // which it has to be for this filter, it will never get both the first and second reads together
-        // and the filterOut method goes in order of the intervals in coordinate order so it will miss reads.
-        // Need to implement new paired one using OverlapDetector
-        throw new UnsupportedOperationException("Paired IntervalFilter filter cannot be implemented, use IntervalKeepPairFilter.");
+        throw new UnsupportedOperationException("IntervalKeepPairFilter(record) keeps both of a pair if either passes the filter.");
     }
 }
