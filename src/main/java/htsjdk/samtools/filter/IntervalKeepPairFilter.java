@@ -25,14 +25,12 @@ package htsjdk.samtools.filter;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SAMUtils;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalUtil;
 import htsjdk.samtools.util.OverlapDetector;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /**

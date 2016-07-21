@@ -27,7 +27,6 @@ import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.IntervalUtil;
-import htsjdk.samtools.util.OverlapDetector;
 
 import java.util.Iterator;
 import java.util.List;
@@ -98,7 +97,6 @@ public class IntervalFilter implements SamRecordFilter {
         //This needs to be changed to say that this can never be implemented because if the bam is coordinate sorted,
         // which it has to be for this filter, it will never get both the first and second reads together
         // and the filterOut method goes in order of the intervals in coordinate order so it will miss reads.
-        // Need to implement new paired one using OverlapDetector
         throw new UnsupportedOperationException("Paired IntervalFilter filter cannot be implemented, use IntervalKeepPairFilter.");
     }
 }
