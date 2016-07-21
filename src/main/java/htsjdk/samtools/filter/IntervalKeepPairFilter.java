@@ -69,21 +69,34 @@ public class IntervalKeepPairFilter implements SamRecordFilter {
         Check if either record overlaps the current interval using overlap detector
         If yes, return false, don't filter it out
          */
+        boolean read1 = findOverlaps(record.getReferenceName(), record.getStart(), record.getEnd());
+        boolean read2 = true;
 
-        //get read 1 interval and check for overlaps in any intervals in list
-        Interval readInterval = new Interval(record.getReferenceName(), record.getStart(), record.getEnd());
-        final Collection<Interval> overlapsRead1 = intervalOverlapDetector.getOverlaps(readInterval);
+        if (!record.getMateUnmappedFlag()) {
+            read2 = findOverlaps(record.getMateReferenceName(), record.getMateAlignmentStart(), SAMUtils.getMateAlignmentEnd(record));
+        }
 
-        //get read 2 interval and check for overlaps
-        readInterval = new Interval(record.getMateReferenceName(), record.getMateAlignmentStart(), SAMUtils.getMateAlignmentEnd(record));
-        final Collection<Interval> overlapsRead2 = intervalOverlapDetector.getOverlaps(readInterval);
-
-        if (overlapsRead1.size() > 0 || overlapsRead2.size() > 0) {
+        if (read1 || read2) {
             return false;
         }
         else {
             return true;
         }
+    }
+
+    /**
+     * Get read interval and check for overlaps over intervals in list
+     *
+     * @param refSequence Reference contig name where record maps
+     * @param start Record alignment start
+     * @param end Record alignment end
+     * @return true if SAMRecord overlaps any intervals in list
+     */
+    private boolean findOverlaps(final String refSequence, final int start, final int end){
+        Interval readInterval = new Interval(refSequence, start, end);
+        final Collection<Interval> overlapsRead = intervalOverlapDetector.getOverlaps(readInterval);
+
+        return overlapsRead.size() > 0;
     }
 
     /**
