@@ -94,7 +94,7 @@ public class IntervalFilter implements SamRecordFilter {
      * @return true if the SAMRecords matches the filter, otherwise false
      */
     public boolean filterOut(final SAMRecord first, final SAMRecord second) {
-        //This needs to be changed to say that this can never be implemented because if the bam is coordinate sorted,
+        // This can never be implemented because if the bam is coordinate sorted,
         // which it has to be for this filter, it will never get both the first and second reads together
         // and the filterOut method goes in order of the intervals in coordinate order so it will miss reads.
         throw new UnsupportedOperationException("Paired IntervalFilter filter cannot be implemented, use IntervalKeepPairFilter.");
