@@ -98,7 +98,7 @@ public class VCFCodec extends AbstractVCFCodec {
                     version = VCFHeaderVersion.toHeaderVersion(lineFields[1]);
                     if ( ! version.isAtLeastAsRecentAs(VCFHeaderVersion.VCF4_0) )
                         throw new TribbleException.InvalidHeader("This codec is strictly for VCFv4; please use the VCF3 codec for " + lineFields[1]);
-                    if ( version != VCFHeaderVersion.VCF4_0 && version != VCFHeaderVersion.VCF4_1 && version != VCFHeaderVersion.VCF4_2 )
+                    if ( version != VCFHeaderVersion.VCF4_0 && version != VCFHeaderVersion.VCF4_1 && version != VCFHeaderVersion.VCF4_2 && version != VCFHeaderVersion.VCF4_3)
                         throw new TribbleException.InvalidHeader("This codec is strictly for VCFv4 and does not support " + lineFields[1]);
                 }
                 headerStrings.add(lineIterator.next());
@@ -145,6 +145,7 @@ public class VCFCodec extends AbstractVCFCodec {
         final List<String> fFields = new LinkedList<String>();
         // otherwise we have to parse and cache the value
         if ( !filterString.contains(VCFConstants.FILTER_CODE_SEPARATOR) )
+            //TODO add a check for duplicate filters
             fFields.add(filterString);
         else
             fFields.addAll(Arrays.asList(filterString.split(VCFConstants.FILTER_CODE_SEPARATOR)));

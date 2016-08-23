@@ -98,6 +98,8 @@ public class VCFHeader implements Serializable {
     private boolean writeEngineHeaders = true;
     private boolean writeCommandLine = true;
 
+    private VCFHeaderVersion oldVersion;
+
     /**
      * Create an empty VCF header with no header lines and no samples
      */
@@ -352,9 +354,11 @@ public class VCFHeader implements Serializable {
      */
     private <T extends VCFHeaderLine> boolean addMetaDataLineMapLookupEntry(final Map<String, T> map, final String key, final T line) {
         if ( map.containsKey(key) ) {
-            if ( GeneralUtils.DEBUG_MODE_ENABLED ) {
-                System.err.println("Found duplicate VCF header lines for " + key + "; keeping the first only" );
+            if (oldVersion == null || oldVersion.isAtLeastAsRecentAs(VCFHeaderVersion.VCF4_3)) {
+                throw new TribbleException.InvalidHeader("Found duplicate VCF header lines for " + key + "; Please note this is invalid as of VCFv4.3");
             }
+            //TODO see if there is a logger class
+            System.err.println("Found duplicate VCF header lines for " + key + "; keeping the first only" );
             return false;
         }
 

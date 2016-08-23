@@ -34,12 +34,12 @@ import htsjdk.variant.variantcontext.VariantContext;
 import java.util.*;
 
 /**
- * a base class for compound header lines, which include info lines and format lines (so far)
+ * a base class for compound header lines, which include info lines, format lines, and pedigree lines (so far)
  */
 public abstract class VCFCompoundHeaderLine extends VCFHeaderLine implements VCFIDHeaderLine {
 
     public enum SupportedHeaderLineType {
-        INFO(true), FORMAT(false);
+        INFO(true), FORMAT(false), PEDIGREE(false);
 
         public final boolean allowFlagValues;
         SupportedHeaderLineType(boolean flagValues) {

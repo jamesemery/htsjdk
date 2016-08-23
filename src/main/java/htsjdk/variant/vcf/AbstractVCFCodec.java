@@ -196,7 +196,7 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
                 }
 
             } else {
-                if ( str.startsWith(VCFConstants.INFO_HEADER_START) ) {
+                if ( str.startsWith(VCFConstants.INFO_HEADER_START) ) {//TODO the substring is stupid and inexcusable
                     final VCFInfoHeaderLine info = getInfoHeaderLineHandler(str.substring(7), version);
                     metaData.add(info);
                 } else if ( str.startsWith(VCFConstants.FILTER_HEADER_START) ) {
@@ -211,6 +211,9 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
                 } else if ( str.startsWith(VCFConstants.ALT_HEADER_START) ) {
                     final VCFSimpleHeaderLine alt = new VCFSimpleHeaderLine(str.substring(6), version, VCFConstants.ALT_HEADER_START.substring(2), Arrays.asList("ID", "Description"));
                     metaData.add(alt);
+                } else if ( str.startsWith(VCFConstants.PEDIGREE_HEADER_START) ) {
+                    final VCFPedigreeHeaderLine pedigree = new VCFPedigreeHeaderLine(str.substring(9), version);
+                    metaData.add(pedigree);
                 } else {
                     int equals = str.indexOf('=');
                     if ( equals != -1 )
@@ -346,6 +349,7 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
         else
             builder.id(parts[2]);
 
+        // TODO add checking for IUPAC ambiguity bases
         final String ref = getCachedString(parts[3].toUpperCase());
         final String alts = getCachedString(parts[4]);
         builder.log10PError(parseQual(parts[5]));
@@ -436,10 +440,18 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
             generateException("The VCF specification requires a valid (non-zero length) info field");
 
         if ( !infoField.equals(VCFConstants.EMPTY_INFO_FIELD) ) {
-            if ( infoField.indexOf('\t') != -1 || infoField.indexOf(' ') != -1 )
-                generateException("The VCF specification does not allow for whitespace in the INFO field. Offending field value was \"" + infoField + "\"");
+            if ( infoField.indexOf('\t') != -1 ) {
+                generateException("The VCF specification does not allow for tab characters in the INFO field. Offending field value was \"" + infoField + "\"");
+
+            } else if (!version.isAtLeastAsRecentAs(VCFHeaderVersion.VCF4_3) && infoField.indexOf(' ') != -1) {
+                //TODO write a test
+                generateException("Old VCF specification versions do not allow for whitespace in the INFO field. Offending field value was \"" + infoField + "\"");
+
+            }
 
             List<String> infoFields = ParsingUtils.split(infoField, VCFConstants.INFO_FIELD_SEPARATOR_CHAR);
+            //TODO is this the place to make the percent encoding split? no totally after parsing of the field
+
             for (int i = 0; i < infoFields.size(); i++) {
                 String key;
                 Object value;
@@ -480,6 +492,10 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
                 // this line ensures that key/value pairs that look like key=; are parsed correctly as MISSING
                 if ( "".equals(value) ) value = VCFConstants.MISSING_VALUE_v4;
 
+                //TODO right here, this is where it must be done
+                if (version.isAtLeastAsRecentAs(VCFHeaderVersion.VCF4_3) && attributes.containsKey(key)) {
+                    generateException("The VCF specification does not allow for duplicate INFO info fields; Offending field value was \"" + infoField + "\"");
+                }
                 attributes.put(key, value);
             }
         }

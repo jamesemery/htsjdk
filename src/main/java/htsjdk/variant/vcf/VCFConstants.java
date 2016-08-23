@@ -86,7 +86,8 @@ public final class VCFConstants {
     public static final String FILTER_HEADER_START = "##FILTER";
     public static final String FORMAT_HEADER_START = "##FORMAT";
     public static final String INFO_HEADER_START = "##INFO";
-    public static final String ALT_HEADER_START = "##ALT";
+    public static final String ALT_HEADER_START = "##ALT";//TODO add pedigree
+    public static final String PEDIGREE_HEADER_START = "##PEDIGREE";
     public static final String CONTIG_HEADER_KEY = "contig";
     public static final String CONTIG_HEADER_START = "##" + CONTIG_HEADER_KEY;
 

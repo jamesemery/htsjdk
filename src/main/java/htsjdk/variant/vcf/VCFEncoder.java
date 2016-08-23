@@ -23,9 +23,9 @@ import java.util.TreeMap;
 public class VCFEncoder {
 
 	/**
-	 * The encoding used for VCF files: ISO-8859-1
+	 * The encoding used for VCF files: UTF-8
 	 */
-	public static final Charset VCF_CHARSET = Charset.forName("ISO-8859-1");
+	public static final Charset VCF_CHARSET = Charset.forName("UTF-8"); //TODO make sure this doesnt explode
 	private static final String QUAL_FORMAT_STRING = "%.2f";
 	private static final String QUAL_FORMAT_EXTENSION_TO_TRIM = ".00";
 

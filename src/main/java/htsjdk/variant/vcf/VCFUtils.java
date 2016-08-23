@@ -206,4 +206,33 @@ public class VCFUtils {
             }
         }
     }
+
+    public static String decodePercentEncodedChars(String input){
+        if (input.contains("%")) {
+            StringBuilder builder = new StringBuilder(input.length());
+            for (int i = 0; i < input.length(); i++) {
+                char c = input.charAt(i);
+                if (i == '%') {
+                    if (i+2>=input.length()) {
+                        throw new IllegalStateException("Improperly formatted '%' escape sequence"); //TODO figure out exception
+                    }
+                    char[] trans = Character.toChars(Integer.parseInt(input.substring(i+1,i+3),16));
+                    if (trans.length != 1) {
+                        throw//TODO add an exception here
+                    }
+                    builder.append(trans[0]);
+                    i = i+2;
+                } else {
+                    builder.append(c);
+                }
+            }
+            return builder.toString();
+        }
+        return input;
+    } //TODO add a unit test to this to VCFUtilsUnitTest
+
+    public static String toPercentEncodedChars(String input) {
+        return "";//TODO write this
+    }
+
 }
