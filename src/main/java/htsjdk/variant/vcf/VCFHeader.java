@@ -407,7 +407,7 @@ public class VCFHeader implements Serializable {
 
     private static Set<VCFHeaderLine> makeGetMetaDataSet(final Set<VCFHeaderLine> headerLinesInSomeOrder) {
         final Set<VCFHeaderLine> lines = new LinkedHashSet<VCFHeaderLine>();
-        lines.add(new VCFHeaderLine(VCFHeaderVersion.VCF4_2.getFormatString(), VCFHeaderVersion.VCF4_2.getVersionString()));
+        lines.add(new VCFHeaderLine(VCFHeaderVersion.VCF4_3.getFormatString(), VCFHeaderVersion.VCF4_3.getVersionString()));
         lines.addAll(headerLinesInSomeOrder);
         return Collections.unmodifiableSet(lines);
     }

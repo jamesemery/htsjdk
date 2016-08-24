@@ -27,6 +27,7 @@ package htsjdk.variant.vcf;
 
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.tribble.TribbleException;
 import htsjdk.variant.utils.GeneralUtils;
 
 import java.io.File;
@@ -40,8 +41,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 public class VCFUtils {
+
+    public static final char[] DANGEROUS_VCF_CHARACTERS = {'%',';',':','=',',','\n','\r','\t'};
+    public static final Pattern catchPattern = Pattern.compile("["+DANGEROUS_VCF_CHARACTERS+"]");
 
     public static Set<VCFHeaderLine> smartMergeHeaders(final Collection<VCFHeader> headers, final boolean emitWarnings) throws IllegalStateException {
         // We need to maintain the order of the VCFHeaderLines, otherwise they will be scrambled in the returned Set.
@@ -209,16 +214,21 @@ public class VCFUtils {
 
     public static String decodePercentEncodedChars(String input){
         if (input.contains("%")) {
-            StringBuilder builder = new StringBuilder(input.length());
+            StringBuilder builder = new StringBuilder(input.length()-2);
             for (int i = 0; i < input.length(); i++) {
                 char c = input.charAt(i);
-                if (i == '%') {
+                if (c == '%') {
                     if (i+2>=input.length()) {
-                        throw new IllegalStateException("Improperly formatted '%' escape sequence"); //TODO figure out exception
+                        throw new TribbleException.VCFException("Improperly formatted '%' escape sequence");
                     }
-                    char[] trans = Character.toChars(Integer.parseInt(input.substring(i+1,i+3),16));
+                    char[] trans;
+                    try {
+                        trans = Character.toChars(Integer.parseInt(input.substring(i + 1, i + 3), 16));
+                    } catch (NumberFormatException e) {
+                        throw new TribbleException.VCFException(String.format("'%%s' is not a valid percent encoded character"));
+                    }
                     if (trans.length != 1) {
-                        throw//TODO add an exception here
+                        throw new TribbleException.VCFException("'%' escape sequence corresponded to an invalid codepoint");
                     }
                     builder.append(trans[0]);
                     i = i+2;
@@ -229,10 +239,24 @@ public class VCFUtils {
             return builder.toString();
         }
         return input;
-    } //TODO add a unit test to this to VCFUtilsUnitTest
-
-    public static String toPercentEncodedChars(String input) {
-        return "";//TODO write this
     }
+
+//    public static String toPercentEncodingCharsFast(String input) {
+//        if (input.indexOf((int)'%') > -1) {
+//            input.
+//        }
+//        return input;
+//    }
+//
+//
+//    public static String toPercentEncodedCharsSlow(String input) {
+//        if (catchPattern.matcher(input.t) ) {
+////            StringBuilder builder = new StringBuilder();
+////            for (int i = 0; i < input.length(); i++) {
+////                if (DANGEROUS_VCF_CHARACTERS)
+////            }
+//        }
+//        return input;//TODO write this funciton
+//    }
 
 }

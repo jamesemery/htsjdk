@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * @author mdepristo
  */
-public class VCFContigHeaderLine extends VCFSimpleHeaderLine {
+public class VCFContigHeaderLine extends VCFSimpleHeaderLine implements VCFIDHeaderLine {
     final Integer contigIndex;
 
     /**
@@ -114,5 +114,9 @@ public class VCFContigHeaderLine extends VCFSimpleHeaderLine {
         else {
             return super.compareTo(other);
         }
+    }
+
+    public String getID() {
+        return name;
     }
 }

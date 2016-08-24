@@ -71,84 +71,84 @@ public class BCF2ReadWriteTest {
         }
     }
 
-//    @DataProvider(name = "writeBigTest")
-//    public Object[][] gtWriteBigData() {
-//        return new Object[][]{
-//                { new File(TEST_DATA_DIR, "ex2.vcf"), new VCFCodec() },
-//        };
-//    }
-//
-//    @Test(dataProvider = "writeBigTest")
-//    public void testWriteBigVCFFile( final File inputFile,  final FeatureCodec<VariantContext, ?> codec) throws Exception {
-//        //VCFFileReader vcfFileReader = new VCFFileReader(inputFile, false);
-//
-//        Path outPath = Files.createTempFile("bcfWriterTest", ".vcf");
-//        outPath.toFile().deleteOnExit();
-//
-//        int count = 0;
-//        try (final AbstractFeatureReader<VariantContext, ?> featureReader =
-//                     AbstractFeatureReader.getFeatureReader(inputFile.getAbsolutePath(), codec, false))
-//        {
-//            VCFHeader vcfHeader = (VCFHeader) featureReader.getHeader();
-//            try (final VariantContextWriter varWriter = createVCFWriter(outPath.toFile(), vcfHeader.getSequenceDictionary(), false)) {
-//                varWriter.writeHeader(vcfHeader);
-//                Iterator<VariantContext> it = featureReader.iterator();
-//                while (it.hasNext()) {
-//                    VariantContext vc = it.next();
-//                    for (int i = 0; i < 1000; i++) {
-//                        count++;
-//                        varWriter.add(vc);
-//                    }
-//                }
-//            }
-//        }
-//        try (final AbstractFeatureReader<VariantContext, ?> featureReader =
-//                     AbstractFeatureReader.getFeatureReader(outPath.toFile().getAbsolutePath(), new VCFCodec(), false)) {
-//            VCFHeader vcfHeader = (VCFHeader) featureReader.getHeader();
-//            int i = 37;
-//        }
-//    }
-//
-//    @DataProvider(name = "roundTripTest")
-//    public Object[][] getRoundTripTestData() {
-//        return new Object[][] {
-//                { new File(TEST_DATA_DIR, "ex2.vcf"), new VCFCodec() }
-//        };
-//    }
-//
-//    @Test(dataProvider = "roundTripTest")
-//    public void testRoundTripVCF( final File inputFile,  final FeatureCodec<VariantContext, ?> codec) throws Exception {
-//
-//        Path outPath = Files.createTempFile("vcfRoundTripTest", ".vcf");
-//        outPath.toFile().deleteOnExit();
-//
-//        try (final AbstractFeatureReader<VariantContext, ?> featureReader =
-//                     AbstractFeatureReader.getFeatureReader(inputFile.getAbsolutePath(), codec, false))
-//        {
-//            VCFHeader vcfHeader = (VCFHeader) featureReader.getHeader();
-//            try (final VariantContextWriter varWriter = createVCFWriter(outPath.toFile(), vcfHeader.getSequenceDictionary(), false)) {
-//                varWriter.writeHeader(vcfHeader);
-//                Iterator<VariantContext> it = featureReader.iterator();
-//                while (it.hasNext()) {
-//                    VariantContext vc = it.next();
-//                    varWriter.add(vc);
-//                }
-//            }
-//        }
-//
-//        // read in the outfile
-//        int newCount = 0;
-//        try (final AbstractFeatureReader<VariantContext, ?> featureReader =
-//                     AbstractFeatureReader.getFeatureReader(outPath.toFile().getAbsolutePath(), new VCFCodec(), false)) {
-//            VCFHeader vcfHeader = (VCFHeader) featureReader.getHeader();
-//            Iterator<VariantContext> it = featureReader.iterator();
-//            while (it.hasNext()) {
-//                VariantContext vc = it.next();
-//                newCount++;
-//            }
-//        }
-//        System.out.println(newCount);
-//    }
+    @DataProvider(name = "writeBigTest")
+    public Object[][] gtWriteBigData() {
+        return new Object[][]{
+                { new File(TEST_DATA_DIR, "ex2.vcf"), new VCFCodec() },
+        };
+    }
+
+    @Test(dataProvider = "writeBigTest")
+    public void testWriteBigVCFFile( final File inputFile,  final FeatureCodec<VariantContext, ?> codec) throws Exception {
+        //VCFFileReader vcfFileReader = new VCFFileReader(inputFile, false);
+
+        Path outPath = Files.createTempFile("bcfWriterTest", ".vcf");
+        outPath.toFile().deleteOnExit();
+
+        int count = 0;
+        try (final AbstractFeatureReader<VariantContext, ?> featureReader =
+                     AbstractFeatureReader.getFeatureReader(inputFile.getAbsolutePath(), codec, false))
+        {
+            VCFHeader vcfHeader = (VCFHeader) featureReader.getHeader();
+            try (final VariantContextWriter varWriter = createVCFWriter(outPath.toFile(), vcfHeader.getSequenceDictionary(), false)) {
+                varWriter.writeHeader(vcfHeader);
+                Iterator<VariantContext> it = featureReader.iterator();
+                while (it.hasNext()) {
+                    VariantContext vc = it.next();
+                    for (int i = 0; i < 1000; i++) {
+                        count++;
+                        varWriter.add(vc);
+                    }
+                }
+            }
+        }
+        try (final AbstractFeatureReader<VariantContext, ?> featureReader =
+                     AbstractFeatureReader.getFeatureReader(outPath.toFile().getAbsolutePath(), new VCFCodec(), false)) {
+            VCFHeader vcfHeader = (VCFHeader) featureReader.getHeader();
+            int i = 37;
+        }
+    }
+
+    @DataProvider(name = "roundTripTest")
+    public Object[][] getRoundTripTestData() {
+        return new Object[][] {
+                { new File(TEST_DATA_DIR, "ex2.vcf"), new VCFCodec() }
+        };
+    }
+
+    @Test(dataProvider = "roundTripTest")
+    public void testRoundTripVCF( final File inputFile,  final FeatureCodec<VariantContext, ?> codec) throws Exception {
+
+        Path outPath = Files.createTempFile("vcfRoundTripTest", ".vcf");
+        outPath.toFile().deleteOnExit();
+
+        try (final AbstractFeatureReader<VariantContext, ?> featureReader =
+                     AbstractFeatureReader.getFeatureReader(inputFile.getAbsolutePath(), codec, false))
+        {
+            VCFHeader vcfHeader = (VCFHeader) featureReader.getHeader();
+            try (final VariantContextWriter varWriter = createVCFWriter(outPath.toFile(), vcfHeader.getSequenceDictionary(), false)) {
+                varWriter.writeHeader(vcfHeader);
+                Iterator<VariantContext> it = featureReader.iterator();
+                while (it.hasNext()) {
+                    VariantContext vc = it.next();
+                    varWriter.add(vc);
+                }
+            }
+        }
+
+        // read in the outfile
+        int newCount = 0;
+        try (final AbstractFeatureReader<VariantContext, ?> featureReader =
+                     AbstractFeatureReader.getFeatureReader(outPath.toFile().getAbsolutePath(), new VCFCodec(), false)) {
+            VCFHeader vcfHeader = (VCFHeader) featureReader.getHeader();
+            Iterator<VariantContext> it = featureReader.iterator();
+            while (it.hasNext()) {
+                VariantContext vc = it.next();
+                newCount++;
+            }
+        }
+        System.out.println(newCount);//TODO what is this asserting
+    }
 
     public static VariantContextWriter createVCFWriter(
             final File outFile,

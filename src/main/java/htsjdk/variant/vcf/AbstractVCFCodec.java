@@ -198,22 +198,22 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
             } else {
                 if ( str.startsWith(VCFConstants.INFO_HEADER_START) ) {//TODO the substring is stupid and inexcusable
                     final VCFInfoHeaderLine info = getInfoHeaderLineHandler(str.substring(7), version);
-                    metaData.add(info);
+                    addAndFilterIDFields(metaData, info);
                 } else if ( str.startsWith(VCFConstants.FILTER_HEADER_START) ) {
                     final VCFFilterHeaderLine filter = getFilterHeaderLineHandler(str.substring(9), version);
-                    metaData.add(filter);
+                    addAndFilterIDFields(metaData, filter);
                 } else if ( str.startsWith(VCFConstants.FORMAT_HEADER_START) ) {
                     final VCFFormatHeaderLine format = getFormatHeaderLineHandler(str.substring(9), version);
-                    metaData.add(format);
+                    addAndFilterIDFields(metaData, format);
                 } else if ( str.startsWith(VCFConstants.CONTIG_HEADER_START) ) {
                     final VCFContigHeaderLine contig = new VCFContigHeaderLine(str.substring(9), version, VCFConstants.CONTIG_HEADER_START.substring(2), contigCounter++);
-                    metaData.add(contig);
+                    addAndFilterIDFields(metaData, contig);
                 } else if ( str.startsWith(VCFConstants.ALT_HEADER_START) ) {
-                    final VCFSimpleHeaderLine alt = new VCFSimpleHeaderLine(str.substring(6), version, VCFConstants.ALT_HEADER_START.substring(2), Arrays.asList("ID", "Description"));
-                    metaData.add(alt);
+                    final VCFAltHeaderLine alt = new VCFAltHeaderLine(str.substring(6), version, VCFConstants.ALT_HEADER_START.substring(2), Arrays.asList("ID", "Description"));
+                    addAndFilterIDFields(metaData, alt);
                 } else if ( str.startsWith(VCFConstants.PEDIGREE_HEADER_START) ) {
                     final VCFPedigreeHeaderLine pedigree = new VCFPedigreeHeaderLine(str.substring(9), version);
-                    metaData.add(pedigree);
+                    addAndFilterIDFields(metaData, pedigree);
                 } else {
                     int equals = str.indexOf('=');
                     if ( equals != -1 )
@@ -227,6 +227,29 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
             this.header = VCFStandardHeaderLines.repairStandardHeaderLines(this.header);
         return this.header;
     }
+
+    private void addAndFilterIDFields(Set<VCFHeaderLine> metaData, VCFIDHeaderLine line) {
+        // Checking that INFO and FORMAT header
+        if ((version.isAtLeastAsRecentAs(VCFHeaderVersion.VCF4_3)) && (line instanceof VCFFormatHeaderLine|| line instanceof VCFInfoHeaderLine)) {
+            if( !((VCFCompoundHeaderLine) line).getID().matches("^[A-Za-z_][0-9A-Za-z_.]*$")) {
+                throw new TribbleException.VCFException("Invalid ID field \""+ ((VCFCompoundHeaderLine) line).getID() +"\" in header line");
+            }
+        }
+        // Checking that compound header lines don't duplicate ID Fields
+        for (VCFHeaderLine stored : metaData) {
+            if (stored.getKey().equals(((VCFHeaderLine) line).getKey()) && stored instanceof VCFIDHeaderLine) {
+                if (((VCFIDHeaderLine) stored).getID().equals(line.getID()) ){
+                    if (version.isAtLeastAsRecentAs(VCFHeaderVersion.VCF4_3)) {
+                        throw new TribbleException.VCFException("ID field for header line type "+ ((VCFHeaderLine) line).getKey() +" must be unique; The offending line, \""+ ((VCFHeaderLine) line).toStringEncoding() + "\"");
+                    } else {
+                        //TODO figure out what to do here
+                    }
+                }
+            }
+        }
+        metaData.add((VCFHeaderLine) line);
+    }
+
 
     /**
      * Subclasses can override this in order to provide custom FILTER line handling.

@@ -26,15 +26,14 @@
 package htsjdk.variant.variantcontext.writer;
 
 import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.RuntimeIOException;
+import htsjdk.samtools.util.StringUtil;
+import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.index.IndexCreator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.vcf.VCFConstants;
-import htsjdk.variant.vcf.VCFEncoder;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
-import htsjdk.variant.vcf.VCFHeaderVersion;
+import htsjdk.variant.vcf.*;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -48,6 +47,7 @@ import java.io.Writer;
  * this class writes VCF files
  */
 class VCFWriter extends IndexingVariantContextWriter {
+    Log logger = Log.getInstance(VCFWriter.class);
 
     private static final String VERSION_LINE =
             VCFHeader.METADATA_INDICATOR + VCFHeaderVersion.VCF4_3.getFormatString() + "=" + VCFHeaderVersion.VCF4_3.getVersionString();
@@ -158,6 +158,12 @@ class VCFWriter extends IndexingVariantContextWriter {
             for (final VCFHeaderLine line : header.getMetaDataInSortedOrder() ) {
                 if ( VCFHeaderVersion.isFormatString(line.getKey()) )
                     continue;
+                //TODO (is here the place to check the thing)
+                if ((line instanceof VCFFormatHeaderLine) || (line instanceof VCFInfoHeaderLine)) {
+                    if( !((VCFCompoundHeaderLine) line).getID().matches("^[A-Za-z_][0-9A-Za-z_.]*$")) {
+                        throw new TribbleException.VCFException("Invalid ID field \""+ ((VCFCompoundHeaderLine) line).getID() +"\" in header line");
+                    }
+                }
 
                 writer.write(VCFHeader.METADATA_INDICATOR);
                 writer.write(line.toString());
