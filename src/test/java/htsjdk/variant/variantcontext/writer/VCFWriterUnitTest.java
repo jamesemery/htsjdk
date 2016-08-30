@@ -30,6 +30,7 @@ import htsjdk.samtools.util.TestUtil;
 import htsjdk.tribble.AbstractFeatureReader;
 import htsjdk.tribble.FeatureReader;
 import htsjdk.tribble.Tribble;
+import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.util.TabixUtils;
 import htsjdk.variant.VariantBaseTest;
 import htsjdk.variant.variantcontext.Allele;
@@ -38,11 +39,7 @@ import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.GenotypesContext;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.vcf.VCFCodec;
-import htsjdk.variant.vcf.VCFFileReader;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
-import htsjdk.variant.vcf.VCFHeaderVersion;
+import htsjdk.variant.vcf.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -275,6 +272,41 @@ public class VCFWriterUnitTest extends VariantBaseTest {
 
         Assert.assertNotNull(roundtripHeader.getOtherHeaderLine("FOOBAR"), "Could not find FOOBAR header line after a write/read cycle");
         Assert.assertEquals(roundtripHeader.getOtherHeaderLine("FOOBAR").getValue(), "foovalue", "Wrong value for FOOBAR header line after a write/read cycle");
+    }
+
+    /**
+     * A test to ensure that the writer fails when given an invalid key for an info field ID tag.
+     */
+    @Test (expectedExceptions = TribbleException.VCFException.class)
+    public void testBadFormatKeyFiltering() {
+        final File originalVCF = new File("src/test/resources/htsjdk/variant/HiSeq.10000.vcf");
+        final VCFFileReader reader = new VCFFileReader(originalVCF, false);
+        final VCFHeader header = reader.getFileHeader();
+        reader.close();
+
+        header.addMetaDataLine(new VCFFormatHeaderLine("<ID=BAD ID,Number=.,Type=Integer,Description=\"Foo\">", VCFHeaderVersion.VCF4_3));
+
+        final File outputVCF = createTempFile("testModifyHeader", ".vcf");
+        final VariantContextWriter writer = new VariantContextWriterBuilder().setOutputFile(outputVCF).setOptions(EnumSet.of(Options.ALLOW_MISSING_FIELDS_IN_HEADER)).build();
+        writer.writeHeader(header);
+    }
+
+    /**
+     * A test to ensure that the writer fails when given a duplicated ID field for a key
+     */
+    @Test (expectedExceptions = TribbleException.VCFException.class)
+    public void testDuplicateKeyIDFieldFiltering() {
+        final File originalVCF = new File("src/test/resources/htsjdk/variant/HiSeq.10000.vcf");
+        final VCFFileReader reader = new VCFFileReader(originalVCF, false);
+        final VCFHeader header = reader.getFileHeader();
+        reader.close();
+
+        // An example of a filter already in the file
+        header.addMetaDataLine(new VCFFilterHeaderLine("<ID=LowQual,Description=\"Foo\">", VCFHeaderVersion.VCF4_3));
+
+        final File outputVCF = createTempFile("testModifyHeader", ".vcf");
+        final VariantContextWriter writer = new VariantContextWriterBuilder().setOutputFile(outputVCF).setOptions(EnumSet.of(Options.ALLOW_MISSING_FIELDS_IN_HEADER)).build();
+        writer.writeHeader(header);
     }
 }
 

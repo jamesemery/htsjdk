@@ -72,7 +72,7 @@ public class VCFEncoder {
 		final StringBuilder stringBuilder = new StringBuilder();
 
 		// CHROM
-		stringBuilder.append(context.getChr()).append(VCFConstants.FIELD_SEPARATOR)
+		stringBuilder.append(context.getContig()).append(VCFConstants.FIELD_SEPARATOR)
 				// POS
 				.append(String.valueOf(context.getStart())).append(VCFConstants.FIELD_SEPARATOR)
 				// ID
@@ -104,8 +104,8 @@ public class VCFEncoder {
 		stringBuilder.append(VCFConstants.FIELD_SEPARATOR)
 				// FILTER
 				.append(getFilterString(context)).append(VCFConstants.FIELD_SEPARATOR);
-
 		// INFO
+		//TODO this is where to do checking ofor unique things
 		final Map<String, String> infoFields = new TreeMap<String, String>();
 		for (final Map.Entry<String, Object> field : context.getAttributes().entrySet() ) {
 			if ( ! this.header.hasInfoLine(field.getKey())) fieldIsMissingFromHeaderError(context, field.getKey(), "INFO");
@@ -170,7 +170,7 @@ public class VCFEncoder {
 	private void fieldIsMissingFromHeaderError(final VariantContext vc, final String id, final String field) {
 		if ( ! allowMissingFieldsInHeader)
 			throw new IllegalStateException("Key " + id + " found in VariantContext field " + field
-					+ " at " + vc.getChr() + ":" + vc.getStart()
+					+ " at " + vc.getContig() + ":" + vc.getStart()
 					+ " but this key isn't defined in the VCFHeader.  We require all VCFs to have"
 					+ " complete VCF headers by default.");
 	}

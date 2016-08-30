@@ -354,11 +354,10 @@ public class VCFHeader implements Serializable {
      */
     private <T extends VCFHeaderLine> boolean addMetaDataLineMapLookupEntry(final Map<String, T> map, final String key, final T line) {
         if ( map.containsKey(key) ) {
-            if (oldVersion == null || oldVersion.isAtLeastAsRecentAs(VCFHeaderVersion.VCF4_3)) {
-                throw new TribbleException.InvalidHeader("Found duplicate VCF header lines for " + key + "; Please note this is invalid as of VCFv4.3");
+            if ( GeneralUtils.DEBUG_MODE_ENABLED ) {
+                System.err.println("Found duplicate VCF header lines for " + key + "; keeping the first only" );
             }
-            //TODO see if there is a logger class
-            System.err.println("Found duplicate VCF header lines for " + key + "; keeping the first only" );
+            //TODO check if there is anything to be doing right here
             return false;
         }
 

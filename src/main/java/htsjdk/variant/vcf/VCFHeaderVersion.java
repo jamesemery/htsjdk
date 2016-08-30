@@ -138,4 +138,8 @@ public enum VCFHeaderVersion {
     public String getFormatString() {
         return formatString;
     }
+
+    public static VCFHeaderVersion mostRecentHeaderVersion() {
+        return VCF4_3;
+    }
 }

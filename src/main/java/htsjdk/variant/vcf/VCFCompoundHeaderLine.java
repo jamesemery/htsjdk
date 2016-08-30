@@ -39,7 +39,7 @@ import java.util.*;
 public abstract class VCFCompoundHeaderLine extends VCFHeaderLine implements VCFIDHeaderLine {
 
     public enum SupportedHeaderLineType {
-        INFO(true), FORMAT(false), PEDIGREE(false);
+        INFO(true), FORMAT(false);
 
         public final boolean allowFlagValues;
         SupportedHeaderLineType(boolean flagValues) {

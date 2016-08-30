@@ -11,20 +11,34 @@ import java.util.regex.Pattern;
 
 public class VCFUtilsUnitTest {
 
-    @Test (dataProvider = "percentEncodedCharsTest")
+    @Test (dataProvider = "percentEncodedCharsDecodeTest")
     public static void decodePercentEncodedCharsTest(String original, String expected) {
         String actual = VCFUtils.decodePercentEncodedChars(original);
         Assert.assertEquals(actual, expected,
                 String.format("decodePercentEncodedChars produced invalid result decoding string '%s', expected string '%s' and received '%s'",original, expected, actual));
     }
 
-    @Test (dataProvider = "percentEncodedCharsTestBadInput", expectedExceptions = TribbleException.VCFException.class )
+    @Test (dataProvider = "percentEncodedCharsDecodeTestBadInput", expectedExceptions = TribbleException.VCFException.class )
     public static void decodePercentEncodedCharsTestBadInput(String original) {
         VCFUtils.decodePercentEncodedChars(original);
     }
 
-    @DataProvider(name = "percentEncodedCharsTest")
-    public Object[][] makePercentEncodedCharsTest() {
+    @Test (dataProvider = "toPercentEncodingFastTest")
+    public static void toPercentEncodingFastTest(String original, String expected) {
+        String actual = VCFUtils.toPercentEncodingFast(original);
+        Assert.assertEquals(actual, expected,
+                String.format("toPercentEncodingFast produced invalid result encoding string '%s', expected string '%s' and received '%s'",original, expected, actual));
+    }
+
+    @Test (dataProvider = "toPercentEncodingTest")
+    public static void toPercentEncodingSlowTest(String original, String expected) {
+        String actual = VCFUtils.toPercentEncodingSlow(original);
+        Assert.assertEquals(actual, expected,
+                String.format("toPercentEncodingFast produced invalid result encoding string '%s', expected string '%s' and received '%s'",original, expected, actual));
+    }
+
+    @DataProvider(name = "percentEncodedCharsDecodeTest")
+    public Object[][] makePercentEncodedCharsDecodeTest() {
         final Object[][] tests = new Object[][] {
                 {"ab cde","ab cde"},
                 {"%41bcde","Abcde"},
@@ -37,12 +51,12 @@ public class VCFUtilsUnitTest {
         return tests;
     }
 
-    @DataProvider(name = "percentEncodedCharsTestBadInput")
-    public Object[][] makePercentEncodedCharsTestBadInput() {
+    @DataProvider(name = "percentEncodedCharsDecodeTestBadInput")
+    public Object[][] makePercentEncodedCharsDecodeTestBadInput() {
         final Object[][] tests = new Object[][] {
                 {"%4"},//Test for incomplete end
                 {"%%%%%"},//Test for non-single charater encoded stirng
-                {"%FF"},//Test for codepoint >127
+                {"%GF"},//Test for codepoint >127
                 {"40% of"},
         };
         return tests;
@@ -54,28 +68,22 @@ public class VCFUtilsUnitTest {
                 {"",""},//Test for empty strings behaving
                 {"abcd","abcd"},//Test for simple strings
                 {", %24","%2C %2524"},//Test for mix of encoded and unencoded characters
-                {"a,;:=%\n","a%2C%3B%3A%3D%25%0A"}, //test of most dissalowed characters
+                {"a,;:=%\n","a%2C%3B%3A%3D%25%0A"}, //test of most disalowed characters
+                {"eéeü","eéeü"}//Test for >127 unicode codepoints
         };
         return tests;
     }
 
-    @Test
-    public void speedTest() {
-        String s = "lalalalalalalalalalalala";
-        System.out.println("["+VCFUtils.DANGEROUS_VCF_CHARACTERS.toString()+"]");
-        Pattern p = VCFUtils.catchPattern;
-
-        long nanotime = System.nanoTime();
-        for (int i = 0; i < 1000; i++) {
-            p.matcher(s);
-        }
-        System.out.println("Matcher time: "+(System.nanoTime()-nanotime));
-        nanotime = System.nanoTime();
-        for (int i = 0; i < 1000; i++) {
-            for (char c : VCFUtils.DANGEROUS_VCF_CHARACTERS) {
-                if (s.indexOf(c)>2);
-            }
-        }
-        System.out.println("indexOf time: "+(System.nanoTime()-nanotime));
+    @DataProvider(name = "toPercentEncodingFastTest")
+    public Object[][] makeToPercentEncodingFastTest() {
+        final Object[][] tests = new Object[][] {
+                {"",""},//Test for empty strings behaving
+                {"abcd","abcd"},//Test for simple strings
+                {",\n ,%",",\n ,%25"},//Test that ONLY the percent character is being encoded
+                {", ;,",", ;,"},
+                {"%","%25"},
+                {"abc%abc%cdb%","abc%25abc%25cdb%25"}
+        };
+        return tests;
     }
 }

@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.regex.Pattern;
 
 /**
  * this class writes VCF files
@@ -65,6 +66,9 @@ class VCFWriter extends IndexingVariantContextWriter {
 
     // should we always output a complete format record, even if we could drop trailing fields?
     private final boolean writeFullFormatField;
+
+    // regex pattern corresponding to legal info/format field keys
+    private static Pattern LEGAL_HEADER_KEYS = Pattern.compile("^[A-Za-z_][0-9A-Za-z_.]*$");
 
     /*
      * The VCF writer uses an internal Writer, based by the ByteArrayOutputStream lineBuffer,
@@ -160,7 +164,8 @@ class VCFWriter extends IndexingVariantContextWriter {
                     continue;
                 //TODO (is here the place to check the thing)
                 if ((line instanceof VCFFormatHeaderLine) || (line instanceof VCFInfoHeaderLine)) {
-                    if( !((VCFCompoundHeaderLine) line).getID().matches("^[A-Za-z_][0-9A-Za-z_.]*$")) {
+                    // Checking that the line matches the VCFv4.3 spec for valid ID fields
+                    if( !( LEGAL_HEADER_KEYS.matcher(((VCFCompoundHeaderLine) line).getID()).matches())) {
                         throw new TribbleException.VCFException("Invalid ID field \""+ ((VCFCompoundHeaderLine) line).getID() +"\" in header line");
                     }
                 }

@@ -26,6 +26,7 @@
 package htsjdk.variant.vcf;
 
 import htsjdk.samtools.util.BlockCompressedInputStream;
+import htsjdk.samtools.util.Log;
 import htsjdk.tribble.AsciiFeatureCodec;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.NameAwareCodec;
@@ -60,6 +61,7 @@ import java.util.zip.GZIPInputStream;
 
 public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext> implements NameAwareCodec {
     public final static int MAX_ALLELE_SIZE_BEFORE_WARNING = (int)Math.pow(2, 20);
+    private final static Log logger = Log.getInstance(AbstractVCFCodec.class);
 
     protected final static int NUM_STANDARD_FIELDS = 8;  // INFO is the 8th column
 
@@ -212,7 +214,7 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
                     final VCFAltHeaderLine alt = new VCFAltHeaderLine(str.substring(6), version, VCFConstants.ALT_HEADER_START.substring(2), Arrays.asList("ID", "Description"));
                     addAndFilterIDFields(metaData, alt);
                 } else if ( str.startsWith(VCFConstants.PEDIGREE_HEADER_START) ) {
-                    final VCFPedigreeHeaderLine pedigree = new VCFPedigreeHeaderLine(str.substring(9), version);
+                    final VCFPedigreeHeaderLine pedigree = new VCFPedigreeHeaderLine(str.substring(11), version);
                     addAndFilterIDFields(metaData, pedigree);
                 } else {
                     int equals = str.indexOf('=');
@@ -240,9 +242,9 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
             if (stored.getKey().equals(((VCFHeaderLine) line).getKey()) && stored instanceof VCFIDHeaderLine) {
                 if (((VCFIDHeaderLine) stored).getID().equals(line.getID()) ){
                     if (version.isAtLeastAsRecentAs(VCFHeaderVersion.VCF4_3)) {
-                        throw new TribbleException.VCFException("ID field for header line type "+ ((VCFHeaderLine) line).getKey() +" must be unique; The offending line, \""+ ((VCFHeaderLine) line).toStringEncoding() + "\"");
+                        throw new TribbleException.VCFException("ID field for header line type ##"+ ((VCFHeaderLine) line).getKey() +" must be unique for all instances; the key \""+line.getID()+"\" is duplicated;");
                     } else {
-                        //TODO figure out what to do here
+                        logger.warn("ID field for header line type ##"+ ((VCFHeaderLine) line).getKey() +" should be unique for all instances; the key \""+line.getID()+"\" is duplicated; Duplicate fields mayb be ignored");
                     }
                 }
             }
