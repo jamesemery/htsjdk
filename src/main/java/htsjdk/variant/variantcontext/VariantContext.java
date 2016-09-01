@@ -1751,6 +1751,7 @@ public class VariantContext implements Feature, Serializable {
     }
 
     public VCFHeaderVersion getOldVersion() {
-        return this.oldVersion;
+        if (this.oldVersion != null) return this.oldVersion;
+        return VCFHeaderVersion.mostRecentHeaderVersion();
     }
 }

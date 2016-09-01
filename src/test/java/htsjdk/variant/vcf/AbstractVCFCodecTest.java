@@ -57,4 +57,15 @@ public class AbstractVCFCodecTest extends VariantBaseTest {
 		Assert.assertEquals(new VCFCodec().getTabixFormat(), TabixFormat.VCF);
 		Assert.assertEquals(new VCF3Codec().getTabixFormat(), TabixFormat.VCF);
 	}
+
+	@Test (expectedExceptions = TribbleException.MalformedFeatureFile.class)
+	public void testDuplicatedHeaderFieldCrash() {
+		final File originalVCF = new File("src/test/resources/htsjdk/variant/HiSeq.10000.duplicatedField.vcf");
+		final VCFFileReader reader = new VCFFileReader(originalVCF, false);
+		final VCFHeader header = reader.getFileHeader();
+		reader.close();
+	}
+
+	@Test
+	public void testDuplicatedFilterField()
 }

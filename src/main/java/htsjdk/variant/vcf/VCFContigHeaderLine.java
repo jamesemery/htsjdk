@@ -50,6 +50,7 @@ public class VCFContigHeaderLine extends VCFSimpleHeaderLine implements VCFIDHea
      */
     public VCFContigHeaderLine(final String line, final VCFHeaderVersion version, final String key, final int contigIndex) {
         super(line, version, key, null);
+        if (getID())
 	    if (contigIndex < 0) throw new TribbleException("The contig index is less than zero.");
         this.contigIndex = contigIndex;
     }

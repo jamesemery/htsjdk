@@ -296,17 +296,38 @@ public class VCFWriterUnitTest extends VariantBaseTest {
      */
     @Test (expectedExceptions = TribbleException.VCFException.class)
     public void testDuplicateKeyIDFieldFiltering() {
-        final File originalVCF = new File("src/test/resources/htsjdk/variant/HiSeq.10000.vcf");
-        final VCFFileReader reader = new VCFFileReader(originalVCF, false);
-        final VCFHeader header = reader.getFileHeader();
-        reader.close();
-
-        // An example of a filter already in the file
-        header.addMetaDataLine(new VCFFilterHeaderLine("<ID=LowQual,Description=\"Foo\">", VCFHeaderVersion.VCF4_3));
+        Set<VCFHeaderLine> metadata = new HashSet<>();
+        metadata.add(new VCFFilterHeaderLine("<ID=LowQual,Description=\"Foo\">", VCFHeaderVersion.VCF4_3));
+        metadata.add(new VCFFilterHeaderLine("<ID=LowQual,Description=\"Bar\">", VCFHeaderVersion.VCF4_3));
+        final VCFHeader header = new VCFHeader(metadata);
 
         final File outputVCF = createTempFile("testModifyHeader", ".vcf");
         final VariantContextWriter writer = new VariantContextWriterBuilder().setOutputFile(outputVCF).setOptions(EnumSet.of(Options.ALLOW_MISSING_FIELDS_IN_HEADER)).build();
         writer.writeHeader(header);
+    }
+
+    /**
+     * A test to ensure the writer is properly performing percent encoding
+     */
+    @Test
+    public void testOldVersionDependentPercentEncoding() {
+        final File originalVCF = new File("src/test/resources/htsjdk/variant/HiSeq.10000.vcf");
+        final VCFFileReader reader = new VCFFileReader(originalVCF, false);
+        final VCFHeader header = reader.getFileHeader();
+        header.addMetaDataLine(new VCFInfoHeaderLine());
+        reader.close();
+
+        final File outputVCF = createTempFile("testModifyHeader", ".vcf");
+        final VariantContextWriter writer = new VariantContextWriterBuilder().setOutputFile(outputVCF).setOptions(EnumSet.of(Options.ALLOW_MISSING_FIELDS_IN_HEADER)).build();
+        writer.writeHeader(header);
+
+        final VariantContext withPercentNewVersion = new VariantContextBuilder(createVC(header)).sourceVersion(VCFHeaderVersion.VCF4_3).attribute("FOO", "BA%R").make();
+        final VariantContext withPercentUnspecifiedVersion = new VariantContextBuilder(createVC(header)).attribute("FOO", "BA%R").make();
+        final VariantContext withPercentOldVersion = new VariantContextBuilder(createVC(header)).sourceVersion(VCFHeaderVersion.VCF4_2).attribute("FOO", "BA%R").make();
+        writer.add(withPercentNewVersion);
+        writer.add(withPercentUnspecifiedVersion);
+        writer.add(withPercentOldVersion);
+
     }
 }
 

@@ -244,7 +244,7 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
                     if (version.isAtLeastAsRecentAs(VCFHeaderVersion.VCF4_3)) {
                         throw new TribbleException.VCFException("ID field for header line type ##"+ ((VCFHeaderLine) line).getKey() +" must be unique for all instances; the key \""+line.getID()+"\" is duplicated;");
                     } else {
-                        logger.warn("ID field for header line type ##"+ ((VCFHeaderLine) line).getKey() +" should be unique for all instances; the key \""+line.getID()+"\" is duplicated; Duplicate fields mayb be ignored");
+                        logger.warn("ID field for header line type ##"+ ((VCFHeaderLine) line).getKey() +" should be unique for all instances; the key \""+line.getID()+"\" is duplicated; Duplicate fields will be ignored");
                     }
                 }
             }
@@ -349,6 +349,7 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
      */
     private VariantContext parseVCFLine(final String[] parts, final boolean includeGenotypes) {
         VariantContextBuilder builder = new VariantContextBuilder();
+        builder.sourceVersion(version);
         builder.source(getName());
 
         // increment the line count
@@ -374,7 +375,6 @@ public abstract class AbstractVCFCodec extends AsciiFeatureCodec<VariantContext>
         else
             builder.id(parts[2]);
 
-        // TODO add checking for IUPAC ambiguity bases
         final String ref = getCachedString(parts[3].toUpperCase());
         final String alts = getCachedString(parts[4]);
         builder.log10PError(parseQual(parts[5]));

@@ -45,7 +45,7 @@ public final class VCFConstants {
     public static final String GENOTYPE_KEY = "GT";
     public static final String GENOTYPE_POSTERIORS_KEY = "GP";
     public static final String GENOTYPE_QUALITY_KEY = "GQ";
-    public static final String GENOTYPE_ALLELE_DEPTHS = "AD"; //AD isn't reserved, but is specifically handled by VariantContext
+    public static final String GENOTYPE_ALLELE_DEPTHS = "AD"; //AD is now reserved
     public static final String GENOTYPE_PL_KEY = "PL";   // phred-scaled genotype likelihoods
     public static final String EXPECTED_ALLELE_COUNT_KEY = "EC";
     @Deprecated public static final String GENOTYPE_LIKELIHOODS_KEY = "GL";         // log10 scaled genotype likelihoods

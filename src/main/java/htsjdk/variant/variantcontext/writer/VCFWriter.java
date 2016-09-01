@@ -29,6 +29,7 @@ import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.RuntimeIOException;
 import htsjdk.samtools.util.StringUtil;
+import htsjdk.tribble.Tribble;
 import htsjdk.tribble.TribbleException;
 import htsjdk.tribble.index.IndexCreator;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -42,6 +43,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -159,10 +162,18 @@ class VCFWriter extends IndexingVariantContextWriter {
             // the file format field needs to be written first
             writer.write(versionLine + "\n");
 
+            // map to check for duplicate Key-ID pairs
+            Set<String> pairSet = new HashSet<>();
+
             for (final VCFHeaderLine line : header.getMetaDataInSortedOrder() ) {
                 if ( VCFHeaderVersion.isFormatString(line.getKey()) )
                     continue;
-                //TODO (is here the place to check the thing)
+                if (line instanceof VCFIDHeaderLine) {
+                    String key = line.getKey() + "," + ((VCFIDHeaderLine)line).getID();
+                    if (pairSet.contains(key)) throw new TribbleException.VCFException("ID field \""+((VCFIDHeaderLine)line).getID()+"\" for key \""+line.getKey()+"\" is repeated, this is invalid");
+                    pairSet.add(key);
+                }
+
                 if ((line instanceof VCFFormatHeaderLine) || (line instanceof VCFInfoHeaderLine)) {
                     // Checking that the line matches the VCFv4.3 spec for valid ID fields
                     if( !( LEGAL_HEADER_KEYS.matcher(((VCFCompoundHeaderLine) line).getID()).matches())) {
